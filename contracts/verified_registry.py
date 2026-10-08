@@ -10,6 +10,11 @@ MAX_DEED_AGE_SECONDS = 7 * 86400
 HEX_CHARS = "0123456789abcdef"
 
 
+def _canonical(domain: str) -> str:
+    d = domain.strip().lower()
+    return d[:-1] if d.endswith(".") else d
+
+
 class VerifiedRegistry(gl.Contract):
     """Example consumer of Deed: a registry of each domain's official
     contract address, writable only by that domain's verified owner.
@@ -46,14 +51,9 @@ class VerifiedRegistry(gl.Contract):
         except Exception:
             return False
 
-    @staticmethod
-    def _canonical(domain: str) -> str:
-        d = domain.strip().lower()
-        return d[:-1] if d.endswith(".") else d
-
     @gl.public.write
     def publish(self, domain: str, official_address: str) -> None:
-        d = self._canonical(domain)
+        d = _canonical(domain)
         if isinstance(official_address, Address):
             official_address = official_address.as_hex
         a = str(official_address).strip().lower()
@@ -72,7 +72,7 @@ class VerifiedRegistry(gl.Contract):
     def lookup(self, domain: str) -> str:
         """The listed address, or "" if there is none or the publisher no
         longer holds a fresh deed (domain sold, record removed, deed gone stale)."""
-        d = self._canonical(domain)
+        d = _canonical(domain)
         if d not in self.listings:
             return ""
         if not self._holds_deed(d, self.publishers[d]):
@@ -81,7 +81,7 @@ class VerifiedRegistry(gl.Contract):
 
     @gl.public.view
     def get_listing(self, domain: str) -> dict:
-        d = self._canonical(domain)
+        d = _canonical(domain)
         if d not in self.listings:
             raise gl.vm.UserError("No listing for this domain")
         return {

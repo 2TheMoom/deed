@@ -176,6 +176,8 @@ GenLayer Bradbury Testnet (chain 4221):
 | `owner_of` with injection-style input (`x&type=A`) | `""`, no revert |
 | `refresh` with the record still present | `verified_at` advanced, `claimed_at` kept, 5/5 agree |
 | Registry `publish` while the claim was accepted but not final | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
+| Same `publish` after the claim finalized | Accepted, 5/5 agree |
+| Registry `lookup` (view calling Deed's view, finalized state) | Returns the published address; `get_listing` reports `currently_valid: true` |
 
 ## Development
 

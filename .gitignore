@@ -1,0 +1,26 @@
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+node_modules
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+/context
+*.compiled.js
+package-lock.json
+
+
+# Local environments and build output
+.venv/
+artifacts/
+.pytest_cache/

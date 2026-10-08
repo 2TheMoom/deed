@@ -79,6 +79,11 @@ Each rule below is enforced in code and has its own test in
   there's no "trust forever" option.
 - **Revocation is permissionless and conservative.** Anyone can trigger a
   refresh, and only a conclusive answer from both resolvers changes state.
+- **Deeds need upkeep, by design.** A deed only passes `is_owner` while its
+  last confirmation is within the consumer's `max_age_seconds`, so someone
+  has to call `refresh` periodically: the owner, a keeper, or any consumer
+  that depends on it. A deed nobody refreshes stops being trusted on its
+  own, which is the safe failure.
 - **DNSSEC is reported, not required.** `dnssec` is true when both
   resolvers returned DNSSEC-validated answers. A high-value consumer can
   require it; most domains aren't signed, so Deed doesn't.
@@ -156,8 +161,21 @@ or an `Address` (what the `genlayer` CLI sends for any 40-hex argument).
 
 GenLayer Bradbury Testnet (chain 4221):
 
-- **Deed:** _pending_
-- **VerifiedRegistry (example consumer):** _pending_
+- **Deed:** [`0xa3e40A9A370764973205e2B7ef263d6Ca27a1c5F`](https://explorer-bradbury.genlayer.com/address/0xa3e40A9A370764973205e2B7ef263d6Ca27a1c5F)
+- **VerifiedRegistry (example consumer):** [`0x458d315342C314f0bAb59e3695E7a01Db76FD0D7`](https://explorer-bradbury.genlayer.com/address/0x458d315342C314f0bAb59e3695E7a01Db76FD0D7)
+
+**Live-verified against real DNS** with `usesalvage.xyz`, whose
+`_deed.usesalvage.xyz` TXT record is published for this deployment:
+
+| Check | Result |
+|---|---|
+| `claim` before the record existed | Refused: "No matching deed record...", 5/5 validators agree |
+| `claim` after publishing the record | Deed recorded, 5/5 agree |
+| `is_owner` for the owner / another wallet | `true` / `false` |
+| Freshness in a view uses real time | 90s-old proof: rejected at `max_age=30`, accepted at `max_age=390` |
+| `owner_of` with injection-style input (`x&type=A`) | `""`, no revert |
+| `refresh` with the record still present | `verified_at` advanced, `claimed_at` kept, 5/5 agree |
+| Registry `publish` while the claim was accepted but not final | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
 
 ## Development
 

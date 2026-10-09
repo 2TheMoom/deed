@@ -608,6 +608,24 @@ def test_owner_of_and_verified_at_never_revert(direct_vm, direct_deploy):
     assert contract.verified_at("bad domain!") == 0
 
 
+def test_non_text_inputs_never_crash_views(direct_vm, direct_deploy, direct_alice):
+    """The genlayer CLI sends numeric-looking arguments as numbers. Views
+    that promise never to revert must answer "no" instead of crashing, and
+    writes must refuse with a clear message."""
+    contract = direct_deploy(CONTRACT)
+    _claimed(direct_vm, contract, direct_alice)
+    alice = to_hex(direct_alice)
+
+    for bad in (123, None, ["example.com"]):  # floats can't be sent: calldata has no float type
+        assert contract.owner_of(bad) == ""
+        assert contract.verified_at(bad) == 0
+        assert contract.is_owner(bad, alice, 86400) is False
+    for bad_age in ("86400", None, True):
+        assert contract.is_owner(DOMAIN, alice, bad_age) is False
+    with direct_vm.expect_revert("domain must be a text string"):
+        contract.claim(123)
+
+
 def test_get_domains_lists_only_current_holdings(direct_vm, direct_deploy, direct_alice, direct_bob):
     contract = direct_deploy(CONTRACT)
     _claimed(direct_vm, contract, direct_alice)

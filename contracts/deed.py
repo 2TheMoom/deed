@@ -36,6 +36,10 @@ def _normalize_domain(raw: str) -> str:
     """Strict hostname validation. Only [a-z0-9-] labels separated by dots
     are accepted, so the value can be interpolated into a resolver URL
     without any way to smuggle extra query parameters, paths or fragments."""
+    # The genlayer CLI turns numeric-looking arguments into numbers; reject
+    # anything that isn't text cleanly instead of crashing on it.
+    if not isinstance(raw, str):
+        raise gl.vm.UserError("domain must be a text string")
     d = raw.strip().lower()
     if d.endswith("."):
         d = d[:-1]
@@ -332,7 +336,7 @@ class Deed(gl.Contract):
         """The check consumer contracts should use: true only if `wallet`
         holds the deed AND DNS confirmed it within `max_age_seconds`."""
         w = _normalize_wallet(wallet)
-        if w is None or max_age_seconds < 0:
+        if w is None or not isinstance(max_age_seconds, int) or isinstance(max_age_seconds, bool) or max_age_seconds < 0:
             return False
         try:
             d = _normalize_domain(domain)

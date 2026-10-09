@@ -10,7 +10,11 @@ MAX_DEED_AGE_SECONDS = 7 * 86400
 HEX_CHARS = "0123456789abcdef"
 
 
-def _canonical(domain: str) -> str:
+def _canonical(domain) -> str:
+    # Non-text input (the CLI sends numeric-looking arguments as numbers)
+    # becomes "", which no listing or deed can match.
+    if not isinstance(domain, str):
+        return ""
     d = domain.strip().lower()
     return d[:-1] if d.endswith(".") else d
 

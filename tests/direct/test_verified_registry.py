@@ -136,6 +136,17 @@ def test_new_domain_owner_can_replace_the_listing(direct_vm, direct_deploy, dire
     assert contract.get_listing("example.com")["publisher"] == bob
 
 
+def test_non_text_domains_are_refused_not_crashed(direct_vm, direct_deploy, direct_alice):
+    contract, fake = _setup(direct_vm, direct_deploy)
+    fake.owners[("example.com", to_hex(direct_alice).lower())] = True
+    direct_vm.sender = direct_alice
+    contract.publish("example.com", OFFICIAL)
+
+    assert contract.lookup(123) == ""
+    with direct_vm.expect_revert("does not hold a finalized"):
+        contract.publish(123, OFFICIAL)
+
+
 def test_lookup_unknown_domain_is_empty(direct_vm, direct_deploy):
     contract, _ = _setup(direct_vm, direct_deploy)
     assert contract.lookup("nothing.com") == ""

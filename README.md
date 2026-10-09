@@ -161,23 +161,32 @@ or an `Address` (what the `genlayer` CLI sends for any 40-hex argument).
 
 GenLayer Bradbury Testnet (chain 4221):
 
-- **Deed:** [`0xa3e40A9A370764973205e2B7ef263d6Ca27a1c5F`](https://explorer-bradbury.genlayer.com/address/0xa3e40A9A370764973205e2B7ef263d6Ca27a1c5F)
-- **VerifiedRegistry (example consumer):** [`0x458d315342C314f0bAb59e3695E7a01Db76FD0D7`](https://explorer-bradbury.genlayer.com/address/0x458d315342C314f0bAb59e3695E7a01Db76FD0D7)
+- **Deed:** [`0x726e2ee206b11ab5862D24D84654619be5C7e9fc`](https://explorer-bradbury.genlayer.com/address/0x726e2ee206b11ab5862D24D84654619be5C7e9fc)
+- **VerifiedRegistry (example consumer):** [`0x76f51Bad89DF4d5a8F66283279dBE0490522AcE3`](https://explorer-bradbury.genlayer.com/address/0x76f51Bad89DF4d5a8F66283279dBE0490522AcE3)
+
+The addresses above are the final deployment. A post-submission review
+found that the never-revert views crashed on non-text input (the CLI
+sends numeric-looking arguments as numbers); the fix needed a
+redeploy. Every check below was re-run on it, except the three registry
+rows marked *pending*: those need the new claim to finalize first, and
+their results here are from the previous deployment.
 
 **Live-verified against real DNS** with `usesalvage.xyz`, whose
 `_deed.usesalvage.xyz` TXT record is published for this deployment:
 
 | Check | Result |
 |---|---|
-| `claim` before the record existed | Refused: "No matching deed record...", 5/5 validators agree |
+| `claim` on a domain with no record (`olumi.xyz`) | Refused: "No matching deed record..." |
 | `claim` after publishing the record | Deed recorded, 5/5 agree |
 | `is_owner` for the owner / another wallet | `true` / `false` |
-| Freshness in a view uses real time | 90s-old proof: rejected at `max_age=30`, accepted at `max_age=390` |
+| Freshness in a view uses real time | 299s-old proof: rejected at `max_age=30`, accepted at `max_age=599` |
 | `owner_of` with injection-style input (`x&type=A`) | `""`, no revert |
+| `owner_of(123)` from the CLI (which sends it as a number) | `""`, no revert |
 | `refresh` with the record still present | `verified_at` advanced, `claimed_at` kept, 5/5 agree |
-| Registry `publish` while the claim was accepted but not final | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
-| Same `publish` after the claim finalized | Accepted, 5/5 agree |
-| Registry `lookup` (view calling Deed's view, finalized state) | Returns the published address; `get_listing` reports `currently_valid: true` |
+| `refresh` after the record was removed from DNS (on the previous deployment, once its record was replaced) | Deed revoked, `owner_of` became `""`, 5/5 agree |
+| Registry `publish` while the claim was accepted but not final *(pending)* | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
+| Same `publish` after the claim finalized *(pending)* | Accepted, 5/5 agree |
+| Registry `lookup` (view calling Deed's view, finalized state) *(pending)* | Returns the published address; `get_listing` reports `currently_valid: true` |
 
 ## Development
 

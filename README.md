@@ -167,9 +167,9 @@ GenLayer Bradbury Testnet (chain 4221):
 The addresses above are the final deployment. A post-submission review
 found that the never-revert views crashed on non-text input (the CLI
 sends numeric-looking arguments as numbers); the fix needed a
-redeploy. Every check below was re-run on it, except the three registry
-rows marked *pending*: those need the new claim to finalize first, and
-their results here are from the previous deployment.
+redeploy. Every check below was re-run on it, except the one row marked
+*previous deployment*: refusing a not-yet-final claim can only be shown in
+the window before a claim finalizes, and that window had passed.
 
 **Live-verified against real DNS** with `usesalvage.xyz`, whose
 `_deed.usesalvage.xyz` TXT record is published for this deployment:
@@ -184,9 +184,9 @@ their results here are from the previous deployment.
 | `owner_of(123)` from the CLI (which sends it as a number) | `""`, no revert |
 | `refresh` with the record still present | `verified_at` advanced, `claimed_at` kept, 5/5 agree |
 | `refresh` after the record was removed from DNS (on the previous deployment, once its record was replaced) | Deed revoked, `owner_of` became `""`, 5/5 agree |
-| Registry `publish` while the claim was accepted but not final *(pending)* | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
-| Same `publish` after the claim finalized *(pending)* | Accepted, 5/5 agree |
-| Registry `lookup` (view calling Deed's view, finalized state) *(pending)* | Returns the published address; `get_listing` reports `currently_valid: true` |
+| Registry `publish` while the claim was accepted but not final *(previous deployment)* | Refused by the registry's own check, through a real cross-contract read of Deed's finalized state |
+| Same `publish` after the claim finalized | Accepted, 5/5 agree |
+| Registry `lookup` (view calling Deed's view, finalized state) | Returns the published address; `get_listing` reports `currently_valid: true` |
 
 ## Development
 
